@@ -5,3 +5,4 @@ musesore_dataset_download_and_process_scripts/*
 *.mid
 *.npy
 __pycache__/*
+.vscode/*
