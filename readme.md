@@ -12,7 +12,7 @@ The backbone of these features is realized by a VAE framework which disentangles
 
 A high-level presentation of our work is shown in the figure below:
 <div align=center>
-<img src="img/diagram.png" width = "50%"/>
+<img src="img/diagram.png" width = "80%"/>
 </div> 
 
 ## 2. Code and File Arrangement
