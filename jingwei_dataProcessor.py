@@ -9,8 +9,8 @@ import numpy as np
 from tqdm import tqdm
 
 class melody_processor(midi_interface_mono_and_chord):
-    def __init__(self):
-        super(melody_processor, self).__init__()
+    def __init__(self, recogLevel='Seven'):
+        super(melody_processor, self).__init__(recogLevel=recogLevel)
 
     def getMelodySeq_byBeats(self, melody_track, downbeats):
         melodySequence = []
@@ -138,7 +138,7 @@ class songDataProcessor(object):
         return splittedMatrix
 
     def texture2prMatrix(self, max_note_count=16):
-        processor = midi_interface_polyphony()
+        processor = midi_interface_polyphony(recogLevel='Seven')
         pr_matrix = processor.Midi2PrMatrix_byBeats(self.polyphony_track, self.downbeats)
         #splitted_pr_matrix = processor.numpySplit(pr_matrix, WINDOWSIZE=32, HOPSIZE=32)
         

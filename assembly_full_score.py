@@ -51,7 +51,7 @@ class QueryProcessor(object):
         return TIV #Time * 12
 
     def melody2pianoRoll(self):
-        processor = melody_processor()
+        processor = melody_processor(recogLevel='Seven')
         melodySeq = processor.getMelodySeq_byBeats(self.melody_track, self.downbeats)
         #print('1-')
         chordSeq = processor.getChordSeq_byBeats(self.chord_track, self.downbeats)
@@ -69,13 +69,60 @@ class QueryProcessor(object):
 
     def chordConverter(self, chord_track, downbeats):
         """only applicable to triple chords"""
-        chromas = {'maj': [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0], 'min': [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0]}
+        chromas = {
+            #           1     2     3     4  5     6     7
+            'maj':     [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0],
+            'min':     [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+            'aug':     [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
+            'dim':     [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0],
+            '7':       [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0],
+            'maj7':    [1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1],
+            'min7':    [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0],
+            'minmaj7': [1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            'dim7':    [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 0],
+            'hdim7':   [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0],
+        }
         distr2quality = {'(4, 3)': 'maj/0', 
                          '(3, 5)': 'maj/1', 
                          '(5, 4)': 'maj/2', 
+
                          '(3, 4)': 'min/0', 
                          '(4, 5)': 'min/1', 
-                         '(5, 3)': 'min/2'}
+                         '(5, 3)': 'min/2',
+
+                         '(4, 4)': 'aug/0',
+                         
+                         '(3, 3)': 'dim/0',
+                         '(3, 6)': 'dim/1',
+                         '(6, 3)': 'dim/2',
+
+                         '(4, 3, 3)': '7/0',
+                         '(3, 3, 2)': '7/1',
+                         '(3, 2, 4)': '7/2',
+                         '(2, 4, 3)': '7/3',
+
+                         '(4, 3, 4)': 'maj7/0',
+                         '(3, 4, 1)': 'maj7/1',
+                         '(4, 1, 4)': 'maj7/2',
+                         '(1, 4, 2)': 'maj7/3',
+
+                         '(3, 4, 3)': 'min7/0',
+                         '(4, 3, 2)': 'min7/1',
+                         '(3, 2, 3)': 'min7/2',
+                         '(2, 3, 4)': 'min7/3',
+
+                         '(3, 4, 4)': 'minmaj7/0',
+                         '(4, 4, 1)': 'minmaj7/1',
+                         '(4, 1, 3)': 'minmaj7/2',
+                         '(1, 3, 4)': 'minmaj7/3',
+
+                         '(3, 3, 3)': 'dim7/0',
+
+                         '(3, 3, 4)': 'hdim7/0',
+                         '(3, 4, 2)': 'hdim7/1',
+                         '(4, 2, 3)': 'hdim7/2',
+                         '(2, 3, 3)': 'hdim7/3',
+                         }
         NC = [-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1]
         last_time = 0
         chord_set = []
@@ -93,8 +140,11 @@ class QueryProcessor(object):
                     if last_time < chord_time[0]:
                         chordsRecord.append({"start":last_time,"end": chord_time[0], "chord" : NC})
                     chord_set.sort()
-                    assert(len(chord_set) == 3)
-                    quality = distr2quality[str(((chord_set[1]-chord_set[0]), (chord_set[2]-chord_set[1])))]
+                    assert(len(chord_set) == 3 or len(chord_set) == 4)
+                    if len(chord_set) == 3:
+                        quality = distr2quality[str(((chord_set[1]-chord_set[0]), (chord_set[2]-chord_set[1])))]
+                    elif len(chord_set) == 4:
+                        quality = distr2quality[str(((chord_set[1]-chord_set[0]), (chord_set[2]-chord_set[1]), (chord_set[3]-chord_set[2])))]
                     root = chord_set[-int(quality.split('/')[-1])] % 12
                     chroma = chromas[quality.split('/')[0]]
                     chroma = chroma[-root:] + chroma[:-root]
@@ -111,8 +161,11 @@ class QueryProcessor(object):
             if last_time < chord_time[0]:
                 chordsRecord.append({"start":last_time ,"end": chord_time[0], "chord" : NC})
             chord_set.sort()
-            assert(len(chord_set) == 3)
-            quality = distr2quality[str(((chord_set[1]-chord_set[0]), (chord_set[2]-chord_set[1])))]
+            assert(len(chord_set) == 3 or len(chord_set) == 4)
+            if len(chord_set) == 3:
+                quality = distr2quality[str(((chord_set[1]-chord_set[0]), (chord_set[2]-chord_set[1])))]
+            elif len(chord_set) == 4:
+                quality = distr2quality[str(((chord_set[1]-chord_set[0]), (chord_set[2]-chord_set[1]), (chord_set[3]-chord_set[2])))]
             root = chord_set[-int(quality.split('/')[-1])] % 12
             chroma = chromas[quality.split('/')[0]]
             chroma = chroma[-root:] + chroma[:-root]
@@ -166,7 +219,7 @@ class QueryProcessor(object):
         return splittedChord
 
 def numpy2melodyAndChord(matrix, tempo=120, start_time=0.0):
-    processor = melody_processor()
+    processor = melody_processor(recogLevel='Seven')
     if len(matrix.shape) == 2:
         return processor.midiReconFromNumpy(matrix=matrix, tempo=tempo, start_time=start_time)
     else:
@@ -233,7 +286,7 @@ class midiRender(melody_processor):
         return notes
     
     def numpy2melodyAndChord(self, matrix, tempo=120, start_time=0.0):
-        processor = melody_processor()
+        processor = melody_processor(recogLevel='Seven')
         return processor.midiReconFromNumpy(matrix=matrix, tempo=tempo, start_time=start_time)
     
     def leadSheet_recon(self, matrix, tempo=120, start_time=0.0):
@@ -383,12 +436,13 @@ def arrangement(query, reference, prgsQ, prgsR):
     else:
         return arrangement(query, reference[1:], prgsQ, prgsR+ord(reference[1][0])-ord(reference[0][0]))
 
-def traverse(query_segmentation='A8A8B8B8\n'):
+def traverse(query_segmentation='A8A8B8B8\n', require_accChord=False):
     segmentation_root = 'D:/Computer Music Research/03_Shuqi/hierarchical-structure-analysis/POP909'
     data_root = 'D:/Computer Music Research/03_Shuqi/POP909-full-phrase'
     df = pd.read_excel('D:/Computer Music Research/produce_polyphonic-chord-texture-disentanglement/data/index.xlsx')
     melody_collection = []
     accompany_collection = []
+    chord_collection = []
     config_collection = []
     score_collection = []
     for song_id in tqdm(range(1, 910)):
@@ -413,17 +467,24 @@ def traverse(query_segmentation='A8A8B8B8\n'):
             song_root = os.path.join(data_root, str(song_id).zfill(3))
             ec2vae_format = np.load(os.path.join(song_root, 'ec2vae_format_full.npy'))
             pr_matrix = np.load(os.path.join(song_root, 'pr_matrix_full.npy'))
+            pr_chord = np.load(os.path.join(song_root, 'pr_chord_full.npy'))
             ec2vae_selection = np.empty((0, 142)) 
             pr_selection = np.empty((128, 0))
+            pr_chord_selection = np.empty((0, 14))
             for item in arr:
                 ec2vae_selection = np.concatenate((ec2vae_selection, ec2vae_format[item[-1]*16: (item[-1]+item[-2])*16, :]), axis=0)
                 pr_selection = np.concatenate((pr_selection, pr_matrix[:, item[-1]*16: (item[-1]+item[-2])*16]), axis=-1)
+                pr_chord_selection = np.concatenate((pr_chord_selection, pr_chord[item[-1]*4: (item[-1]+item[-2])*4, :]), axis=0)
             #print(song_id, arr, np.shape(ec2vae_selection), pr_selection.shape)
             melody_collection.append(ec2vae_selection)
             accompany_collection.append(pr_selection)
+            chord_collection.append(pr_chord_selection)
             config_collection.append([item[0]+str(item[1]) for item in arr])
             score_collection.append(score)
-    return np.array(melody_collection), np.array(accompany_collection), config_collection
+    if not require_accChord:
+        return np.array(melody_collection), np.array(accompany_collection), config_collection, score_collection
+    else:
+        return np.array(melody_collection), np.array(accompany_collection), np.array(chord_collection), config_collection, score_collection
             
 # Task 1: for testing if resfister matters
 def register_shift(query_piano_roll_phrase, target_prPianoRoll_whole):
@@ -455,6 +516,8 @@ def chord_comparison(pr_chord_phrase, shifted_ensemble, num_candidate=10):
     #pr_chord_phrase: batch*8*36; prChordSet: batch*32*14
     if len(pr_chord_phrase.shape) == 3:
         pr_chord_phrase = pr_chord_phrase[::2].reshape((-1, 36))[:, 12:24]
+    else:
+        pr_chord_phrase = pr_chord_phrase[:, 12:24]
     #print(pr_chord_phrase)
     """use TIV"""
     pr_chord_phrase = computeTIV(pr_chord_phrase)
@@ -467,6 +530,7 @@ def chord_comparison(pr_chord_phrase, shifted_ensemble, num_candidate=10):
     #print(pr_chord_phrase.shape, shifted_ensemble.shape)
     #print(candidates, scores)
     return candidates, scores
+
 def chord_shift(prChordSet):
     prChordSet = prChordSet[:, :, 1: -1]
     num_total = prChordSet.shape[0]
@@ -627,11 +691,11 @@ def rhythmCompare(query, instance_space, num_candidate=10):
 
 def search_random_for_leadSheet():
     #define query
-    song_name, segmentation, note_shift = "Morning Star.mid", 'A4A4B8B8\n', 1
+    #song_name, segmentation, note_shift = "Morning Star.mid", 'A4A4B8B8\n', 1
     #song_name, segmentation, note_shift = "The 29th of May.mid", 'A4A4B8\n', 0
     #song_name, segmentation, note_shift = "Barry's Favourite.mid", 'A8A8B8C8\n', 1
-    #song_name, segmentation, note_shift = 'Boggy Brays.mid', 'A8A8B8B8\n', 0
-    song_root='../produce_Deep-Music-Analogy-Demos/nottingham_database/nottingham_dual-track_doublebeat_withChord'
+    song_name, segmentation, note_shift = 'Boggy Brays.mid', 'A8A8B8B8\n', 0
+    song_root='../produce_Deep-Music-Analogy-Demos/nottingham_database/nottingham_Dual-track-Direct'
     #get query phrase
     songData = QueryProcessor(song_name=song_name, song_root=song_root, note_shift=note_shift)
     pianoRoll, _, TIV = songData.melody2pianoRoll()
@@ -639,7 +703,7 @@ def search_random_for_leadSheet():
     #print(chord_table[0])
     #print(chord_table[-1])
 
-    prPianoRollSet, prMatrixSet, config_collection = traverse(segmentation)
+    prPianoRollSet, prMatrixSet, config_collection, score_collection = traverse(segmentation)
     #piano_roll_phrase, pr_chord_phrase = get_queryPhrase(song_name, start_bar, end_bar, note_shift)
     #phrase_length = end_bar - start_bar
     #load arrangement set
@@ -650,10 +714,11 @@ def search_random_for_leadSheet():
     pr_matrix = np.transpose(pr_matrix)
     prPianoRoll = prPianoRollSet[random_number]
     config = config_collection[random_number]
+    score = score_collection[random_number]
     #print(prPianoRoll.shape)
     #chord_comparison(pr_chord_phrase, prChordSet)
     shift = register_shift(pianoRoll, prPianoRoll)
-    print(shift, config)
+    print(shift, config, score)
     shift= np.sign(shift) * (abs(shift)%12)
     pr_matrix_shifted = np.roll(pr_matrix, shift, axis=-1)
 
@@ -839,24 +904,31 @@ def search_withMeldoy_for_leadSheet():
 
 def search_withRhythm_for_leadSheet():
     #define query
-    #song_name, start_bar, end_bar, note_shift = 'Abram Circle.mid', 0, 8, 1
-    #song_name, start_bar, end_bar, note_shift = '2nd part for B music.mid', 0, 8, 0
-    song_name, start_bar, end_bar, note_shift = 'Boggy Brays.mid', 0, 8, 0
+    #song_name, segmentation, note_shift = "Morning Star.mid", 'A4A4B8B8\n', 1
+    #song_name, segmentation, note_shift = "The 29th of May.mid", 'A4A4B8\n', 0
+    #song_name, segmentation, note_shift = "Barry's Favourite.mid", 'A8A8B8C8\n', 1
+    song_name, segmentation, note_shift = 'Boggy Brays.mid', 'A8A8B8B8\n', 0
+    song_root='../produce_Deep-Music-Analogy-Demos/nottingham_database/nottingham_Dual-track-Direct'
     #get query phrase
-    piano_roll_phrase, pr_chord_phrase = get_queryPhrase(song_name, start_bar, end_bar, note_shift)
-    phrase_length = end_bar - start_bar
-    #load arrangement set
-    phrase_root = os.path.join('../POP909-phrase', str(phrase_length))
-    prMatrixSet = np.load(os.path.join(phrase_root, 'pr_matrix.npy'))
-    prChordSet = np.load(os.path.join(phrase_root, 'pr_chord.npy'))
-    prPianoRollSet = np.load(os.path.join(phrase_root, 'ec2vae_format.npy'))
+    songData = QueryProcessor(song_name=song_name, song_root=song_root, note_shift=note_shift)
+    pianoRoll, _, TIV = songData.melody2pianoRoll()
+    chord_table = songData.chord2chordTable()
+    #print(chord_table[0])
+    #print(chord_table[-1])
+
+    prPianoRollSet, prMatrixSet, prChordSet, config_collection, score_collection = traverse(segmentation, require_accChord=True)
+    SCORE_Threshold = 0
+    prPianoRollSet = prPianoRollSet[np.array(score_collection) >= SCORE_Threshold]
+    prMatrixSet = prMatrixSet[np.array(score_collection) >= SCORE_Threshold]
+    prChordSet = prChordSet[np.array(score_collection) >= SCORE_Threshold]
+    #print(prPianoRollSet.shape, prMatrixSet.shape, prChordSet.shape)
     
     shifted_prChordSet, scale, table = chord_shift(prChordSet)
     shifted_prPianoRollSet, scale, table = piano_roll_shift(prPianoRollSet)
-    #pr_chord_phrase = shifted_prChordSet[20000]
-    candidates, scores = chord_comparison(pr_chord_phrase, shifted_prChordSet, num_candidate = 100)
-    sub_prPianoRollSet =shifted_prPianoRollSet[candidates]
-    
+
+    candidates, scores = chord_comparison(chord_table, shifted_prChordSet, num_candidate = 100)
+    sub_prPianoRollSet = shifted_prPianoRollSet[candidates]
+
     pr_rhythmSet = sub_prPianoRollSet[ :, :, :128].sum(-1) #num_total*n_step
     #print(prPianoRollSet[1712, 125])
     """for batch in range(pr_rhythmSet.shape[0]):
@@ -872,8 +944,7 @@ def search_withRhythm_for_leadSheet():
     #shifted_prPianoRollSet, scale_2, table = piano_roll_shift(prPianoRollSet)
     #assert(scale_1 == scale_2)
     #candidates, scores = chord_comparison(pr_chord_phrase, shifted_prChordSet, num_candidate=100)
-    pr = piano_roll_phrase[::2].reshape((-1, piano_roll_phrase.shape[2]))
-    pr_rhythm = pr[ :, :128].sum(-1) #n_step
+    pr_rhythm = pianoRoll[ :, :128].sum(-1) #n_step
     """for i in range(pr_rhythm.shape[0]):
         if pr_rhythm[i] == 1:
             j = i + 1
@@ -894,7 +965,7 @@ def search_withRhythm_for_leadSheet():
     idx = candidates[candidates_idx[0]]
     shift = table[idx // scale]
     idx = idx % scale
-    print(shift, idx)
+    print(shift, idx, scale)
     
 
     pr_matrix = prMatrixSet[idx]
@@ -907,18 +978,22 @@ def search_withRhythm_for_leadSheet():
     shifted_piano = np.roll(piano, shift, axis=-1)
     shifted_chord = np.roll(chord, shift, axis=-1)
     shifted_prPianoRoll = np.concatenate((shifted_piano, rhythm, shifted_chord), axis=-1)
+    pr_matrix_shifted = np.roll(pr_matrix, shift, axis=-1)
     
     #shift = register_shift(piano_roll_phrase, prPianoRoll)
     #print(shift)
-    pr_matrix_shifted = np.roll(pr_matrix, shift, axis=-1)
 
-    pr_matrix = QueryProcessor.numpySplit(pr_matrix, 0, 8, 32, 16, 128)
-    pr_matrix_shifted = QueryProcessor.numpySplit(pr_matrix_shifted, 0, 8, 32, 16, 128)
+    #pianoRoll = QueryProcessor.numpySplit(pianoRoll, 32, 16, 142)
+    
+    
     #init midi render
     midi_render = midiRender()
-    #load corpus
-
-    query_midi = midi_render.leadSheet_recon(piano_roll_phrase[::2].reshape((-1, 142)), tempo=120, start_time=0)
+    query_midi = midi_render.leadSheet_recon(pianoRoll, tempo=120, start_time=0)
+    
+    pr_matrix = QueryProcessor.numpySplit(pr_matrix, 32, 16, 128)
+    pr_matrix_shifted = QueryProcessor.numpySplit(pr_matrix_shifted, 32, 16, 128)
+    pianoRoll = QueryProcessor.numpySplit(pianoRoll, 32, 16, 142)
+    gt_chord = QueryProcessor.chordSplit(chord_table, 8, 4)
     
     #retrieved acc
     acc_original = midi_render.pr_matrix2note(pr_matrix, 120)
@@ -930,12 +1005,12 @@ def search_withRhythm_for_leadSheet():
     pt_decoder = PtvaeDecoder(note_embedding=None, dec_dur_hid_size=64, z_size=512)
     pr_matrix = torch.from_numpy(pr_matrix).float().cuda()
     pr_matrix_shifted = torch.from_numpy(pr_matrix_shifted).float().cuda()
-    gt_chord_phrase = torch.from_numpy(pr_chord_phrase).float().cuda()
-    est_x = model.inference(pr_matrix, gt_chord_phrase, sample=False)
-    est_x_shifted = model.inference(pr_matrix_shifted, gt_chord_phrase, sample=False)
+    gt_chord = torch.from_numpy(gt_chord).float().cuda()
+    est_x = model.inference(pr_matrix, gt_chord, sample=False)
+    est_x_shifted = model.inference(pr_matrix_shifted, gt_chord, sample=False)
     #Generate accompaniment
-    midiReGen = midi_render.accomapnimentGeneration(piano_roll_phrase, est_x, 120)
-    midiReGen_shifted = midi_render.accomapnimentGeneration(piano_roll_phrase, est_x_shifted, 120)
+    midiReGen = midi_render.accomapnimentGeneration(pianoRoll, est_x, 120)
+    midiReGen_shifted = midi_render.accomapnimentGeneration(pianoRoll, est_x_shifted, 120)
     midiReGen.write('accompaniment_test_1.mid')
     midiReGen_shifted.write('accompaniment_test_1_shifted.mid')
     acc_original.write('accompaniment_origional_1.mid')
@@ -970,10 +1045,10 @@ if __name__ == '__main__':
     recon.instruments.append(chord_track)
     recon.write('pop909_test.mid')
     """
-    search_random_for_leadSheet()
+    #search_random_for_leadSheet()
     #search_withChord_for_leadSheet()
     #search_withMeldoy_for_leadSheet()
-    #search_withRhythm_for_leadSheet()
+    search_withRhythm_for_leadSheet()
     #traverse(query_segmentation='A8A8B8B8\n')
 
     
