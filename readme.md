@@ -20,7 +20,7 @@ A high-level presentation of our work is shown in the figure below:
 In this work, the codes and files are arranged as follow:
 
 1) **assembly_full_phrase.py** achieves full-phrase accompaniment generation. To run this code, a piece of single-phrase lead melody and a reference library of accompaniment pieces are required. The default library of this work derives from the POP-909 dataset. More details about this feature is introduced on <https://zhaojw1998.github.io/project-auto_arrangement>. Demos can also be found there.
-2) **assembly_full_score.py** is a new feature where dynamic programming is introduced to accomplish full-score arrangement. Demos are stored in **/full-score_demo**. It contains four demos each with different phrase configuration within the full score. The original melodies are from
+2) **assembly_full_score.py** is a new feature where dynamic programming is introduced to accomplish full-score arrangement. Demos are stored in **/full-score_demo**. It contains four demos each with different phrase configuration within the full score. The original melodies are from Nottingham Dataset.
 
 ## 3. Dependencies
 
