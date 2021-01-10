@@ -6,9 +6,9 @@
 Arrangement generation for lead melodies is an interesting topic in computer music. While conventional methods rely on sequential models, we propose a novel framework based on rule-based search strategies and style transfer in the disentangled latent space. This project is a joint application of EC2-VAE, Poly-Disentanglement-VAE, and POP-909 Dataset, three ISMIR works from Music X Lab, NYU Shanghai. Till now, we have accomplished two major features:
 
 1) Accompaniment generation for full phrase;
-2) Accompaniment generation for full score.
+2) Accompaniment generation for full score given phrase segment labels.
 
-The backbone of these features is realized by a VAE framework which disentangles a piece of polyphonic music into chord and texture. For full-score generation, we introduce dynamic programming to optimize global coordination. For future work, we will engage more on representation learning techniques to achieve more controllable generation.
+The backbone of these features is realized by a VAE framework which disentangles a piece of polyphonic music into chord and texture. For full-score generation, we introduce dynamic programming to optimize texture coherence within the whole song. For future work, we will engage more on representation learning techniques to achieve more controllable generation.
 
 A high-level presentation of our work is shown in the figure below:
 <div align=center>
@@ -20,7 +20,7 @@ A high-level presentation of our work is shown in the figure below:
 In this work, the codes and files are arranged as follow:
 
 1) **assembly_full_phrase.py** achieves full-phrase accompaniment generation. To run this code, a piece of single-phrase lead melody and a reference library of accompaniment pieces are required. The default library of this work derives from the POP-909 dataset. More details about this feature is introduced on <https://zhaojw1998.github.io/project-auto_arrangement>. Demos can also be found there.
-2) **assembly_full_score.py** is a new feature where dynamic programming is introduced to accomplish full-score arrangement. Demos are stored in **/full-score_demo**. It contains three demos each with different phrase configuration within the full score.
+2) **assembly_full_score.py** is a new feature where dynamic programming is introduced to accomplish full-score arrangement. Demos are stored in **/full-score_demo**. It contains four demos each with different phrase configuration within the full score. The original melodies are from the Nottingham dataset.
 
 ## 3. Dependencies
 
