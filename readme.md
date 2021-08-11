@@ -1,5 +1,9 @@
 # Accompaniment Generation via Music Representation Learning
 
+## Update Aug. 11 2021
+
+This repository is the initial-stage work of our ISMIR'21 paper *AccoMontage: Accompaniment Arrangement via Phrase Selection and Style Transfer*. To view the complete code and demos, please refer to https://github.com/zhaojw1998/AccoMontage. This repository will no longer be maintained.
+
 
 ## 1. Introduction to the Work
 

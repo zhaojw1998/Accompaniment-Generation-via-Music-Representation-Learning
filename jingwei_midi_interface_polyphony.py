@@ -49,7 +49,7 @@ class midi_interface_polyphony(object):
             splittedMatrix = np.concatenate((splittedMatrix, sample), axis=0)
         return splittedMatrix
 
-    def PrMatrix2Midi(self, PrMatrix, ts, ks, tempo=120, fourthNote_reso=4):
+    def PrMatrix2Midi(self, PrMatrix, ts=None, ks=None, tempo=120, fourthNote_reso=4):
         midiReGen = pyd.PrettyMIDI(initial_tempo=tempo)
         instrument = pyd.Instrument(program=pyd.instrument_name_to_program('Acoustic Grand Piano'))
         delta = 60 / tempo / fourthNote_reso
@@ -66,8 +66,10 @@ class midi_interface_polyphony(object):
                         new_note = pyd.Note(velocity=100, pitch=p, start=start, end=end)
                         instrument.notes.append(new_note)
         midiReGen.instruments.append(instrument)
-        midiReGen.time_signature_changes = ts
-        midiReGen.key_signature_changes = ks
+        if not ts == None:
+            midiReGen.time_signature_changes = ts
+        if not ks == None:
+            midiReGen.key_signature_changes = ks
         return midiReGen
 
     

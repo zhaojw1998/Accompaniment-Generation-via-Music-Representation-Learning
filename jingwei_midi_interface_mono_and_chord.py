@@ -115,11 +115,11 @@ class midi_interface_mono_and_chord(object):
     
     def midiReconFromSeq(self, melodySequence, ChordSequence, tempo, start_time=0.0):
         minStep = 60 / tempo / 4
-        #midiRecon = pyd.PrettyMIDI(initial_tempo=tempo)
-        #program = pyd.instrument_name_to_program('Violin')
-        #melody = pyd.Instrument(program=program)
-        #program = pyd.instrument_name_to_program('Acoustic Grand Piano')
-        #chord = pyd.Instrument(program=program)
+        midiRecon = pyd.PrettyMIDI(initial_tempo=tempo)
+        program = pyd.instrument_name_to_program('Acoustic Grand Piano')
+        melody = pyd.Instrument(program=program)
+        program = pyd.instrument_name_to_program('Acoustic Grand Piano')
+        chord = pyd.Instrument(program=program)
         melody_notes = []
         chord_notes = []
         onset_or_rest = [i for i in range(len(melodySequence)) if not melodySequence[i]==self.hold_pitch]
@@ -152,15 +152,19 @@ class midi_interface_mono_and_chord(object):
                     noteRecon = pyd.Note(velocity=100, pitch=note+4*12, start=start_time+start, end=start_time+end)
                     chord_notes.append(noteRecon)
 
-        #midiRecon.instruments.append(melody)
-        #midiRecon.instruments.append(chord)
+        melody.notes = melody_notes
+        chord.notes = chord_notes
+        midiRecon.instruments.append(melody)
+        midiRecon.instruments.append(chord)
         #midiRecon.write('melody_and_chord_reconTest1.mid')
         return melody_notes, chord_notes
+        #return midiRecon
 
     def seq2Numpy(self, melodySequence, chordSequence, ROLL_SIZE=130, CHORD_SIZE=12):
         assert(len(melodySequence) == len(chordSequence))
         melodyMatrix = np.zeros((len(melodySequence), ROLL_SIZE))
         chordMatrix = np.zeros((len(chordSequence), CHORD_SIZE))
+        pure_chord = np.zeros((len(chordSequence)//4, CHORD_SIZE))
         for idx, note in enumerate(melodySequence):
             melodyMatrix[idx, note] = 1
             chordName = chordSequence[idx]
@@ -169,7 +173,10 @@ class midi_interface_mono_and_chord(object):
                 continue
             for idxP in chordset:
                 chordMatrix[idx, idxP%12] = 1
-        return np.concatenate((melodyMatrix, chordMatrix), axis=-1), chordMatrix
+            if idx % 4 == 0:
+                for idxP in chordset:
+                    pure_chord[idx//4, idxP%12] = 1
+        return np.concatenate((melodyMatrix, chordMatrix), axis=-1), pure_chord
 
     def midiReconFromNumpy(self, matrix, tempo=120, start_time=0.0, ROLL_SIZE=130, CHORD_SIZE=12):
         melodyMatrix = matrix[:, :ROLL_SIZE]
